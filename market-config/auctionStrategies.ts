@@ -231,6 +231,16 @@ export const auctionStrategyEXRP: IAuctionStrategyParams = {
   tickLength: "900",
 };
 
+export const auctionStrategyPandora: IAuctionStrategyParams = {
+  name: "auctionStrategyPandora",
+  maxPriceMultiplier: utils.parseUnits("3", 18).toString(),
+  minExpPriceMultiplier: utils.parseUnits("1.2", 18).toString(),
+  minPriceMultiplier: utils.parseUnits("0.8", 18).toString(),
+  stepLinear: utils.parseUnits("0.06875", 18).toString(),
+  stepExp: utils.parseUnits("0.0285474001559822", 18).toString(),
+  tickLength: "900",
+};
+
 export const auctionStrategyLinear: IAuctionStrategyParams = {
   name: "auctionStrategyLinear",
   maxPriceMultiplier: utils.parseUnits("3", 18).toString(),

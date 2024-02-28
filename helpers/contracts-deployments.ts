@@ -156,6 +156,7 @@ import {
   PoolAAPositionMover__factory,
   PoolBorrowAndStake__factory,
   PoolBorrowAndStake,
+  Pandora,
 } from "../types";
 import {
   getACLManager,
@@ -1409,6 +1410,7 @@ export const deployAllERC721Tokens = async (verify?: boolean) => {
       | Land
       | Meebits
       | Moonbirds
+      | Pandora
       | Contract
       | StakefishNFTManager;
   } = {};
@@ -1433,7 +1435,7 @@ export const deployAllERC721Tokens = async (verify?: boolean) => {
       console.log("contract address is already in db", tokenSymbol);
       continue;
     } else if (tokensConfig[tokenSymbol]) {
-      console.log("contract address is already in db", tokenSymbol);
+      console.log("contract address is set in market config", tokenSymbol);
       await insertContractAddressInDb(
         tokenSymbol,
         tokensConfig[tokenSymbol],
@@ -1488,6 +1490,14 @@ export const deployAllERC721Tokens = async (verify?: boolean) => {
         const punks = await deployPunks([], verify);
         tokens[eContractid.PUNKS] = punks;
         tokens[tokenSymbol] = await deployWPunks([punks.address], verify);
+        continue;
+      }
+
+      if (tokenSymbol === ERC721TokenContractId.PANDORA) {
+        tokens[tokenSymbol] = await deployPandora(
+          await deployer.getAddress(),
+          verify
+        );
         continue;
       }
 
@@ -2209,6 +2219,17 @@ export const deployUniswapSwapRouter = async (
     [...args],
     verify
   );
+
+export const deployPandora = async (
+  owner: string,
+  verify?: boolean
+): Promise<Pandora> =>
+  withSaveAndVerify(
+    await getContractFactory("Pandora"),
+    eContractid.PANDORA,
+    [owner],
+    verify
+  ) as Promise<Pandora>;
 
 export const deployStETH = async (verify?: boolean): Promise<StETHMocked> =>
   withSaveAndVerify(

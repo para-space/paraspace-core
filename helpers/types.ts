@@ -232,6 +232,7 @@ export enum eContractid {
   NFTDescriptor = "NFTDescriptor",
   NonfungibleTokenPositionDescriptor = "NonfungibleTokenPositionDescriptor",
   NonfungiblePositionManager = "NonfungiblePositionManager",
+  PANDORA = "PANDORA",
   StETH = "stETH",
   WStETH = "wstETH",
   MockAToken = "MockAToken",
@@ -671,6 +672,7 @@ export enum ERC721TokenContractId {
   KODA = "KODA",
   BLOCKS = "BLOCKS",
   EXRP = "EXRP",
+  PANDORA = "PANDORA",
 }
 
 export enum NTokenContractId {

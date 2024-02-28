@@ -523,6 +523,7 @@ export const eContractidToContractName = {
   MockBendDaoLendPool: "MockLendPool",
   PositionMoverLogic: "PositionMoverLogic",
   PoolPositionMoverImpl: "PoolPositionMover",
+  PANDORA: "Pandora",
 };
 
 export const XTOKEN_TYPE_UPGRADE_WHITELIST =

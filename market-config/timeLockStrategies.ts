@@ -796,3 +796,15 @@ export const timeLockStrategyEXRP: ITimeLockStrategyParams = {
   poolPeriodLimit: "100",
   period: "86400",
 };
+
+export const timeLockStrategyPandora: ITimeLockStrategyParams = {
+  name: "timeLockStrategyPandora",
+  minThreshold: "2",
+  midThreshold: "6",
+  minWaitTime: "12",
+  midWaitTime: "7200",
+  maxWaitTime: "21600",
+  poolPeriodWaitTime: "600",
+  poolPeriodLimit: "20",
+  period: "86400",
+};
