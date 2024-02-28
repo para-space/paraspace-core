@@ -173,4 +173,11 @@ interface IP2PPairStaking {
      * @param _matchingOperator The address of the new matching operator
      */
     function setMatchingOperator(address _matchingOperator) external;
+
+    /**
+     * @notice clear delegation.
+     * @param nft The address of nft
+     * @param tokenId The token Id of nft
+     */
+    function clearDelegation(address nft, uint256 tokenId) external;
 }

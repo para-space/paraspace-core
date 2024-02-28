@@ -12,6 +12,7 @@ import {INTokenApeStaking} from "../../interfaces/INTokenApeStaking.sol";
 import {ApeCoinStaking} from "../../dependencies/yoga-labs/ApeCoinStaking.sol";
 import {INToken} from "../../interfaces/INToken.sol";
 import {IRewardController} from "../../interfaces/IRewardController.sol";
+import {IP2PPairStaking} from "../../interfaces/IP2PPairStaking.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 /**
@@ -23,6 +24,7 @@ contract NTokenBAKC is NToken {
     ApeCoinStaking immutable _apeCoinStaking;
     address private immutable nBAYC;
     address private immutable nMAYC;
+    address public p2PStaking;
 
     /**
      * @dev Constructor.
@@ -71,6 +73,10 @@ contract NTokenBAKC is NToken {
         IERC721(underlyingAsset).setApprovalForAll(address(POOL), true);
     }
 
+    function setP2PPairStaking(address _p2PStaking) external onlyPoolAdmin {
+        p2PStaking = _p2PStaking;
+    }
+
     function _transfer(
         address from,
         address to,
@@ -78,6 +84,7 @@ contract NTokenBAKC is NToken {
         bool validate
     ) internal override {
         _unStakePairedApePosition(tokenId);
+        _clearP2PDelegationInfo(tokenId);
         super._transfer(from, to, tokenId, validate);
     }
 
@@ -138,6 +145,15 @@ contract NTokenBAKC is NToken {
             }
         }
         return positionExisted;
+    }
+
+    function _clearP2PDelegationInfo(uint256 tokenId) internal {
+        if (p2PStaking != address(0)) {
+            IP2PPairStaking(p2PStaking).clearDelegation(
+                _ERC721Data.underlyingAsset,
+                tokenId
+            );
+        }
     }
 
     function getXTokenType() external pure override returns (XTokenType) {

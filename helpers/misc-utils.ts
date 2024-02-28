@@ -28,6 +28,8 @@ import {
   MOONBASE_CHAINID,
   LINEA_CHAINID,
   LINEA_GOERLI_CHAINID,
+  MANTA_TEST_CHAINID,
+  MANTA_CHAINID,
   SEPOLIA_CHAINID,
   ARBITRUM_SEPOLIA_CHAINID,
   PARALLEL_DEV_CHAINID,
@@ -71,6 +73,7 @@ export const isPublicTestnet = (): boolean => {
       POLYGON_MUMBAI_CHAINID,
       MOONBASE_CHAINID,
       LINEA_GOERLI_CHAINID,
+      MANTA_TEST_CHAINID,
     ].includes(DRE.network.config.chainId!) ||
     [
       eEthereumNetwork.goerli,
@@ -164,6 +167,14 @@ export const isParallel = (): boolean => {
   );
 };
 
+export const isManta = (): boolean => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return (
+    [MANTA_CHAINID].includes(DRE.network.config.chainId!) ||
+    [eEthereumNetwork.manta].includes(FORK as eEthereumNetwork)
+  );
+};
+
 export const isMainnet = (): boolean =>
   isEthereum() ||
   isMoonbeam() ||
@@ -171,9 +182,10 @@ export const isMainnet = (): boolean =>
   isZkSync() ||
   isPolygon() ||
   isPolygonZkEVM() ||
-  isLinea() ||
   isNeon() ||
-  isParallel();
+  isParallel() ||
+  isManta() ||
+  isLinea();
 
 export const safeTransactionServiceUrl = (): string => {
   return isMoonbeam()

@@ -115,6 +115,7 @@ import {
   timeLockStrategyEXRP,
   timeLockStrategyuPPG,
   timeLockStrategyuBAYC,
+  timeLockStrategyTIA,
   timeLockStrategyaUSDC,
 } from "./timeLockStrategies";
 
@@ -1120,6 +1121,70 @@ export const strategyuPPG: IReserveParams = {
   timeLockStrategy: timeLockStrategyuPPG,
   baseLTVAsCollateral: "3000",
   liquidationThreshold: "6500",
+  liquidationProtocolFeePercentage: "0",
+  liquidationBonus: "10500",
+  borrowingEnabled: true,
+  reserveDecimals: "18",
+  xTokenImpl: eContractid.PTokenImpl,
+  reserveFactor: "1000",
+  borrowCap: "0",
+  supplyCap: "0",
+};
+
+export const strategyWUSDM: IReserveParams = {
+  strategy: rateStrategyUSDT,
+  auctionStrategy: auctionStrategyZero,
+  timeLockStrategy: timeLockStrategyUSDT,
+  baseLTVAsCollateral: "7000",
+  liquidationThreshold: "8000",
+  liquidationProtocolFeePercentage: "0",
+  liquidationBonus: "10500",
+  borrowingEnabled: true,
+  reserveDecimals: "18",
+  xTokenImpl: eContractid.PTokenImpl,
+  reserveFactor: "1000",
+  borrowCap: "0",
+  supplyCap: "0",
+};
+
+export const strategySTONE: IReserveParams = {
+  strategy: rateStrategyWETH,
+  auctionStrategy: auctionStrategyZero,
+  timeLockStrategy: timeLockStrategyWETH,
+  baseLTVAsCollateral: "7000",
+  liquidationThreshold: "8000",
+  liquidationProtocolFeePercentage: "0",
+  liquidationBonus: "10450",
+  borrowingEnabled: true,
+  reserveDecimals: "18",
+  xTokenImpl: eContractid.PTokenImpl,
+  reserveFactor: "1000",
+  borrowCap: "0",
+  supplyCap: "0",
+};
+
+export const strategyTIA: IReserveParams = {
+  strategy: rateStrategyWETH,
+  auctionStrategy: auctionStrategyZero,
+  timeLockStrategy: timeLockStrategyTIA,
+  baseLTVAsCollateral: "6500",
+  liquidationThreshold: "7500",
+  liquidationProtocolFeePercentage: "0",
+  liquidationBonus: "10500",
+  borrowingEnabled: true,
+  reserveDecimals: "18",
+  xTokenImpl: eContractid.PTokenImpl,
+  reserveFactor: "1000",
+  borrowCap: "0",
+  supplyCap: "0",
+};
+
+export const strategyMANTA: IReserveParams = {
+  strategy: rateStrategyWETH,
+  auctionStrategy: auctionStrategyZero,
+  timeLockStrategy: timeLockStrategyTIA,
+  baseLTVAsCollateral: "6500",
+  liquidationThreshold: "7500",
   liquidationProtocolFeePercentage: "0",
   liquidationBonus: "10500",
   borrowingEnabled: true,

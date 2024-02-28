@@ -27,6 +27,7 @@ library ApeStakingLogic {
 
     struct APEStakingParameter {
         uint256 unstakeIncentive;
+        address p2PStaking;
     }
     event UnstakeApeIncentiveUpdated(uint256 oldValue, uint256 newValue);
 
@@ -83,6 +84,16 @@ library ApeStakingLogic {
         if (oldValue != incentive) {
             stakingParameter.unstakeIncentive = incentive;
             emit UnstakeApeIncentiveUpdated(oldValue, incentive);
+        }
+    }
+
+    function executeSetP2PPairStaking(
+        APEStakingParameter storage stakingParameter,
+        address p2PStaking
+    ) external {
+        address oldValue = stakingParameter.p2PStaking;
+        if (oldValue != p2PStaking) {
+            stakingParameter.p2PStaking = p2PStaking;
         }
     }
 

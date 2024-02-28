@@ -16,6 +16,7 @@ export const step_20 = async (verify = false) => {
   const paraSpaceConfig = getParaSpaceConfig();
   try {
     if (!paraSpaceConfig.ReservesConfig[ERC20TokenContractId.APE]) {
+      console.log("Not Ape Config, skip deploy P2PPairStaking");
       return;
     }
     // deploy P2PPairStaking

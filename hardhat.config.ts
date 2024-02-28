@@ -267,6 +267,16 @@ const hardhatConfig: HardhatUserConfig = {
       url: NETWORKS_RPC_URL[eEthereumNetwork.mainnet],
       accounts: DEPLOYER,
     },
+    manta: {
+      chainId: CHAINS_ID[eEthereumNetwork.manta],
+      url: NETWORKS_RPC_URL[eEthereumNetwork.manta],
+      accounts: DEPLOYER,
+    },
+    mantaTest: {
+      chainId: CHAINS_ID[eEthereumNetwork.mantaTest],
+      url: NETWORKS_RPC_URL[eEthereumNetwork.mantaTest],
+      accounts: DEPLOYER,
+    },
   },
   etherscan: {
     apiKey: {

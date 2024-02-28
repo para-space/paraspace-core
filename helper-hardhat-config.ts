@@ -17,6 +17,8 @@ import {
   LINEA_CHAINID,
   LINEA_GOERLI_CHAINID,
   MAINNET_CHAINID,
+  MANTA_CHAINID,
+  MANTA_TEST_CHAINID,
   MOONBASE_CHAINID,
   MOONBEAM_CHAINID,
   PARALLEL_CHAINID,
@@ -123,6 +125,9 @@ export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
     (INFURA_KEY
       ? `https://linea-goerli.infura.io/v3/${INFURA_KEY}`
       : `https://rpc.goerli.linea.build`),
+  [eEthereumNetwork.manta]: "https://pacific-rpc.manta.network/http",
+  [eEthereumNetwork.mantaTest]:
+    "https://pacific-rpc.testnet.manta.network/http",
   [eEthereumNetwork.neon]:
     RPC_URL || `https://neon-proxy-mainnet.solana.p2p.org`,
 };
@@ -150,6 +155,8 @@ export const CHAINS_ID: iParamsPerNetwork<number | undefined> = {
   [eEthereumNetwork.zksyncGoerli]: ZKSYNC_GOERLI_CHAINID,
   [eEthereumNetwork.linea]: LINEA_CHAINID,
   [eEthereumNetwork.lineaGoerli]: LINEA_GOERLI_CHAINID,
+  [eEthereumNetwork.manta]: MANTA_CHAINID,
+  [eEthereumNetwork.mantaTest]: MANTA_TEST_CHAINID,
   [eEthereumNetwork.neon]: NEON_CHAINID,
 };
 
@@ -176,5 +183,7 @@ export const BLOCK_TO_FORK: iParamsPerNetwork<number | undefined> = {
   [eEthereumNetwork.zksyncGoerli]: undefined,
   [eEthereumNetwork.linea]: undefined,
   [eEthereumNetwork.lineaGoerli]: undefined,
+  [eEthereumNetwork.manta]: undefined,
+  [eEthereumNetwork.mantaTest]: undefined,
   [eEthereumNetwork.neon]: undefined,
 };

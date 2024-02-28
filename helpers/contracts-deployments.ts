@@ -164,14 +164,17 @@ import {
   getAutoYieldApe,
   getBAYCSewerPass,
   getContractFactory,
+  getDelegationRegistry,
   getFirstSigner,
   getHelperContract,
   getInitializableAdminUpgradeabilityProxy,
+  getNonfungiblePositionManager,
   getP2PPairStaking,
   getPoolProxy,
   getProtocolDataProvider,
   getPunks,
   getTimeLockProxy,
+  getUniswapV3Factory,
   getUniswapV3SwapRouter,
   getWETH,
 } from "./contracts-getters";
@@ -956,43 +959,51 @@ export const deployPoolComponents = async (
   )) as PoolMarketplace;
 
   const config = getParaSpaceConfig();
-  const treasuryAddress = config.Treasury;
-  const poolApeStaking = allTokens.APE
-    ? ((await withSaveAndVerify(
-        await getContractFactory("PoolApeStaking", apeStakingLibraries),
-        eContractid.PoolApeStakingImpl,
-        [
-          provider,
-          (await getAutoCompoundApe()).address,
-          allTokens.APE.address,
-          allTokens.USDC.address,
-          (await getUniswapV3SwapRouter()).address,
-          allTokens.WETH.address,
-          APE_WETH_FEE,
-          WETH_USDC_FEE,
-          treasuryAddress,
-        ],
-        verify,
-        false,
-        apeStakingLibraries,
-        poolApeStakingSelectors
-      )) as PoolApeStaking)
-    : undefined;
+  let poolApeStaking;
+  let poolBorrowAndStake;
+  if (config.EnableApeStaking) {
+    const treasuryAddress = config.Treasury;
+    const cApe = await getAutoCompoundApe();
+    poolApeStaking = allTokens.APE
+      ? ((await withSaveAndVerify(
+          await getContractFactory("PoolApeStaking", apeStakingLibraries),
+          eContractid.PoolApeStakingImpl,
+          [
+            provider,
+            cApe.address,
+            allTokens.APE.address,
+            allTokens.USDC.address,
+            (await getUniswapV3SwapRouter()).address,
+            allTokens.WETH.address,
+            APE_WETH_FEE,
+            WETH_USDC_FEE,
+            treasuryAddress,
+          ],
+          verify,
+          false,
+          apeStakingLibraries,
+          poolApeStakingSelectors
+        )) as PoolApeStaking)
+      : undefined;
 
-  const BorrowAndStakeLibraries = pick(coreLibraries, [
-    "contracts/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic",
-  ]);
-  const poolBorrowAndStake = allTokens.APE
-    ? ((await withSaveAndVerify(
-        await getContractFactory("PoolBorrowAndStake", BorrowAndStakeLibraries),
-        eContractid.PoolBorrowAndStakeImpl,
-        [provider, (await getAutoCompoundApe()).address, allTokens.APE.address],
-        verify,
-        false,
-        BorrowAndStakeLibraries,
-        poolBorrowAndStakeSelectors
-      )) as PoolBorrowAndStake)
-    : undefined;
+    const BorrowAndStakeLibraries = pick(coreLibraries, [
+      "contracts/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic",
+    ]);
+    poolBorrowAndStake = allTokens.APE
+      ? ((await withSaveAndVerify(
+          await getContractFactory(
+            "PoolBorrowAndStake",
+            BorrowAndStakeLibraries
+          ),
+          eContractid.PoolBorrowAndStakeImpl,
+          [provider, cApe.address, allTokens.APE.address],
+          verify,
+          false,
+          BorrowAndStakeLibraries,
+          poolBorrowAndStakeSelectors
+        )) as PoolBorrowAndStake)
+      : undefined;
+  }
 
   return {
     poolCore,
@@ -1576,13 +1587,29 @@ export const deployAllERC721Tokens = async (verify?: boolean) => {
             ],
             verify
           );
-        const factory = await deployUniswapV3Factory([], verify);
-        await deployUniswapSwapRouter([factory.address, weth.address], verify);
-        const nonfungiblePositionManager =
-          await deployNonfungiblePositionManager(
+        let factory;
+        if (!paraSpaceConfig.Uniswap.V3Factory) {
+          factory = await deployUniswapV3Factory([], verify);
+        } else {
+          factory = await getUniswapV3Factory();
+        }
+
+        if (!paraSpaceConfig.Uniswap.V3Router) {
+          await deployUniswapSwapRouter(
+            [factory.address, weth.address],
+            verify
+          );
+        }
+
+        let nonfungiblePositionManager;
+        if (!paraSpaceConfig.Uniswap.V3NFTPositionManager) {
+          nonfungiblePositionManager = await deployNonfungiblePositionManager(
             [factory.address, weth.address, positionDescriptor.address],
             verify
           );
+        } else {
+          nonfungiblePositionManager = await getNonfungiblePositionManager();
+        }
         tokens[tokenSymbol] = nonfungiblePositionManager;
         continue;
       }
@@ -2757,6 +2784,10 @@ export const deployP2PPairStakingImpl = async (verify?: boolean) => {
   const apeCoinStaking =
     (await getContractAddressInDb(eContractid.ApeCoinStaking)) ||
     (await deployApeCoinStaking(verify)).address;
+  const paraSpaceConfig = getParaSpaceConfig();
+  const delegationRegistry =
+    paraSpaceConfig.DelegationRegistry ||
+    (await getDelegationRegistry()).address;
   const args = [
     allTokens.BAYC.address,
     allTokens.MAYC.address,
@@ -2767,6 +2798,7 @@ export const deployP2PPairStakingImpl = async (verify?: boolean) => {
     allTokens.APE.address,
     allTokens.cAPE.address,
     apeCoinStaking,
+    delegationRegistry,
   ];
 
   return withSaveAndVerify(

@@ -43,6 +43,10 @@ export const MOCK_CHAINLINK_AGGREGATORS_PRICES = {
   MATIC: parseEther("0.00058").toString(),
   stMATIC: parseEther("0.00058").toString(),
   CRV: parseEther("0.00058").toString(),
+  WUSDM: parseEther("000908578801039414").toString(),
+  STONE: parseEther("1.05").toString(),
+  TIA: parseEther("0.0058").toString(),
+  MANTA: parseEther("0.00058").toString(),
   // ERC721
   BAYC: parseEther("101").toString(),
   WPUNKS: parseEther("140").toString(),
@@ -110,6 +114,10 @@ export const MOCK_CHAINLINK_AGGREGATORS_USD_PRICES = {
   MATIC: parseUnits("6.4", 8).toString(),
   stMATIC: parseUnits("6.4", 8).toString(),
   CRV: parseUnits("6.4", 8).toString(),
+  WUSDM: parseUnits("1.05", 8).toString(),
+  STONE: parseUnits("2400", 8).toString(),
+  TIA: parseUnits("17", 8).toString(),
+  MANTA: parseUnits("3", 8).toString(),
   // ERC721
   BAYC: parseUnits("96239", 8).toString(),
   WPUNKS: parseUnits("113896", 8).toString(),

@@ -13,6 +13,8 @@ import {IERC721} from "../dependencies/openzeppelin/contracts/IERC721.sol";
 import {IERC20, SafeERC20} from "../dependencies/openzeppelin/contracts/SafeERC20.sol";
 import {PercentageMath} from "../protocol/libraries/math/PercentageMath.sol";
 import {SignatureChecker} from "../dependencies/looksrare/contracts/libraries/SignatureChecker.sol";
+import {Errors} from "../protocol/libraries/helpers/Errors.sol";
+import {IDelegateRegistry} from "../dependencies/delegation/IDelegateRegistry.sol";
 
 contract P2PPairStaking is
     Initializable,
@@ -47,6 +49,7 @@ contract P2PPairStaking is
     address internal immutable apeCoin;
     address internal immutable cApe;
     ApeCoinStaking internal immutable apeCoinStaking;
+    address internal immutable delegateRegistry;
 
     bytes32 internal DOMAIN_SEPARATOR;
     mapping(bytes32 => ListingOrderStatus) public listingOrderStatus;
@@ -58,6 +61,8 @@ contract P2PPairStaking is
     uint256 private baycMatchedCap;
     uint256 private maycMatchedCap;
     uint256 private bakcMatchedCap;
+    //asset => tokenId => delegateTo
+    mapping(address => mapping(uint256 => address)) tokenDelegations;
 
     constructor(
         address _bayc,
@@ -68,7 +73,8 @@ contract P2PPairStaking is
         address _nBakc,
         address _apeCoin,
         address _cApe,
-        address _apeCoinStaking
+        address _apeCoinStaking,
+        address _delegateRegistry
     ) {
         bayc = _bayc;
         mayc = _mayc;
@@ -79,6 +85,7 @@ contract P2PPairStaking is
         apeCoin = _apeCoin;
         cApe = _cApe;
         apeCoinStaking = ApeCoinStaking(_apeCoinStaking);
+        delegateRegistry = _delegateRegistry;
     }
 
     function initialize() public initializer {
@@ -115,6 +122,78 @@ contract P2PPairStaking is
         if (allowance == 0) {
             IERC20(apeCoin).safeApprove(cApe, type(uint256).max);
         }
+    }
+
+    function clearDelegation(address nft, uint256 tokenId) external {
+        require(
+            msg.sender == nBayc || msg.sender == nMayc || msg.sender == nBakc,
+            Errors.INVALID_CALLER
+        );
+        _clearDelegation(nft, tokenId);
+    }
+
+    function _clearDelegation(address nft, uint256 tokenId) internal {
+        bool delegated = (tokenDelegations[nft][tokenId] != address(0));
+        if (delegated) {
+            _updateTokenDelegation(
+                nft,
+                tokenId,
+                tokenDelegations[nft][tokenId],
+                false
+            );
+        }
+    }
+
+    function delegateForToken(
+        address nft,
+        uint256[] calldata tokenIds,
+        address delegateTo,
+        bool value
+    ) external nonReentrant {
+        address nTokenAddress;
+        if (nft == bayc) {
+            nTokenAddress = nBayc;
+        } else if (nft == mayc) {
+            nTokenAddress = nMayc;
+        } else if (nft == bakc) {
+            nTokenAddress = nBakc;
+        } else {
+            revert("unsupported");
+        }
+        IERC721 nToken = IERC721(nTokenAddress);
+        for (uint256 index = 0; index < tokenIds.length; index++) {
+            require(
+                msg.sender == nToken.ownerOf(tokenIds[index]),
+                Errors.INVALID_CALLER
+            );
+
+            bool isDelegated = (tokenDelegations[nft][tokenIds[index]] !=
+                address(0));
+            require(value != isDelegated, Errors.TOKEN_ALREADY_DELEGATED);
+
+            _updateTokenDelegation(nft, tokenIds[index], delegateTo, value);
+        }
+    }
+
+    function _updateTokenDelegation(
+        address asset,
+        uint256 tokenId,
+        address delegateTo,
+        bool value
+    ) internal {
+        if (value) {
+            tokenDelegations[asset][tokenId] = delegateTo;
+        } else {
+            delete tokenDelegations[asset][tokenId];
+        }
+
+        IDelegateRegistry(delegateRegistry).delegateERC721(
+            delegateTo,
+            asset,
+            tokenId,
+            "",
+            value
+        );
     }
 
     function cancelListing(
@@ -326,7 +405,7 @@ contract P2PPairStaking is
                 apeCoinStaking.withdrawBAKC(_otherPairs, _nfts);
             }
         }
-        //5 transfer token
+        //5 transfer token and clear delegation
         uint256 matchedCount = apeMatchedCount[order.apeToken][
             order.apeTokenId
         ];
@@ -336,6 +415,7 @@ contract P2PPairStaking is
                 apeNToken,
                 order.apeTokenId
             );
+            _clearDelegation(order.apeToken, order.apeTokenId);
         }
         apeMatchedCount[order.apeToken][order.apeTokenId] = matchedCount - 1;
 
@@ -349,6 +429,7 @@ contract P2PPairStaking is
                 nBakc,
                 order.bakcTokenId
             );
+            _clearDelegation(bakc, order.bakcTokenId);
         }
 
         //6 reset ape coin listing order status

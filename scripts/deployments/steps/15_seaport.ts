@@ -25,9 +25,14 @@ import {GLOBAL_OVERRIDES} from "../../../helpers/hardhat-constants";
 
 export const step_15 = async (verify = false) => {
   try {
+    const paraSpaceConfig = getParaSpaceConfig();
+    if (!paraSpaceConfig.EnableSeaport) {
+      console.log("seaport not enable, skip deploy seaport");
+      return;
+    }
+
     const deployer = await getFirstSigner();
     const deployerAddress = await deployer.getAddress();
-    const paraSpaceConfig = getParaSpaceConfig();
     const addressesProvider = await getPoolAddressesProvider();
     const protocolDataProvider = await getProtocolDataProvider();
     const conduitController = await deployConduitController(verify);
@@ -47,10 +52,10 @@ export const step_15 = async (verify = false) => {
     );
     const conduitInstance = await getConduit(conduit);
     await waitForTx(
-      await conduitInstance.initialize(
-        protocolDataProvider.address,
-        GLOBAL_OVERRIDES
-      )
+      await conduitInstance.initialize(protocolDataProvider.address, {
+        gasLimit: 1_000_000,
+        ...GLOBAL_OVERRIDES,
+      })
     );
     const zone = await createZone(pausableZoneController, deployer);
     const seaport = await deploySeaport(conduitController.address, verify);

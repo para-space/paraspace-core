@@ -568,6 +568,10 @@ set-liquidation-threshold:
 set-reserve-factor:
 	make TASK_NAME=set-reserve-factor run-task
 
+.PHONY: reset-all-asset-reserve-factor
+reset-all-asset-reserve-factor:
+	make TASK_NAME=reset-all-asset-reserve-factor run-task
+
 .PHONY: set-interest-rate-strategy
 set-interest-rate-strategy:
 	make TASK_NAME=set-interest-rate-strategy run-task

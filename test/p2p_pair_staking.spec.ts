@@ -6,6 +6,7 @@ import {testEnvFixture} from "./helpers/setup-env";
 import {mintAndValidate, supplyAndValidate} from "./helpers/validated-steps";
 import {
   getAutoCompoundApe,
+  getDelegationRegistry,
   getP2PPairStaking,
 } from "../helpers/contracts-getters";
 import {MAX_UINT_AMOUNT} from "../helpers/constants";
@@ -22,7 +23,8 @@ describe("P2P Pair Staking Test", () => {
 
   const fixture = async () => {
     testEnv = await loadFixture(testEnvFixture);
-    const {ape, users, apeCoinStaking} = testEnv;
+    const {ape, users, apeCoinStaking, poolAdmin, nBAYC, nMAYC, nBAKC} =
+      testEnv;
 
     const user1 = users[0];
     const user2 = users[1];
@@ -59,6 +61,22 @@ describe("P2P Pair Staking Test", () => {
       await cApe
         .connect(user2.signer)
         .approve(p2pPairStaking.address, MAX_UINT_AMOUNT)
+    );
+
+    await waitForTx(
+      await nBAYC
+        .connect(poolAdmin.signer)
+        .setP2PPairStaking(p2pPairStaking.address)
+    );
+    await waitForTx(
+      await nMAYC
+        .connect(poolAdmin.signer)
+        .setP2PPairStaking(p2pPairStaking.address)
+    );
+    await waitForTx(
+      await nBAKC
+        .connect(poolAdmin.signer)
+        .setP2PPairStaking(p2pPairStaking.address)
     );
 
     return testEnv;
@@ -121,6 +139,20 @@ describe("P2P Pair Staking Test", () => {
       parseEther("2880")
     );
 
+    //test delegation
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user1.signer)
+        .delegateForToken(bayc.address, [0], user1.address, true)
+    );
+    const delegationRegistry = await getDelegationRegistry();
+    let delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation[0].to).to.be.eq(user1.address);
+    expect(delegation[0].tokenId).to.be.eq(0);
+    expect(delegation[0].contract_).to.be.eq(bayc.address);
+
     await waitForTx(
       await p2pPairStaking.connect(user1.signer).claimCApeReward(user1.address)
     );
@@ -152,6 +184,11 @@ describe("P2P Pair Staking Test", () => {
       await p2pPairStaking.pendingCApeReward(user2.address),
       parseEther("2880")
     );
+
+    delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation.length).to.be.eq(0);
   });
 
   it("test MAYC pair with ApeCoin Staking", async () => {
@@ -218,6 +255,19 @@ describe("P2P Pair Staking Test", () => {
     );
 
     await waitForTx(
+      await p2pPairStaking
+        .connect(user1.signer)
+        .delegateForToken(mayc.address, [0], user1.address, true)
+    );
+    const delegationRegistry = await getDelegationRegistry();
+    let delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation[0].to).to.be.eq(user1.address);
+    expect(delegation[0].tokenId).to.be.eq(0);
+    expect(delegation[0].contract_).to.be.eq(mayc.address);
+
+    await waitForTx(
       await p2pPairStaking.connect(user1.signer).claimCApeReward(user1.address)
     );
     await waitForTx(
@@ -248,6 +298,11 @@ describe("P2P Pair Staking Test", () => {
       await p2pPairStaking.pendingCApeReward(user2.address),
       parseEther("2880")
     );
+
+    delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation.length).to.be.eq(0);
   });
 
   it("test BAYC pair with BAKC and ApeCoin Staking", async () => {
@@ -323,6 +378,27 @@ describe("P2P Pair Staking Test", () => {
     await waitForTx(
       await p2pPairStaking
         .connect(user1.signer)
+        .delegateForToken(bayc.address, [0], user1.address, true)
+    );
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user3.signer)
+        .delegateForToken(bakc.address, [0], user3.address, true)
+    );
+    const delegationRegistry = await getDelegationRegistry();
+    let delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation[0].to).to.be.eq(user1.address);
+    expect(delegation[0].tokenId).to.be.eq(0);
+    expect(delegation[0].contract_).to.be.eq(bayc.address);
+    expect(delegation[1].to).to.be.eq(user3.address);
+    expect(delegation[1].tokenId).to.be.eq(0);
+    expect(delegation[1].contract_).to.be.eq(bakc.address);
+
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user1.signer)
         .claimForMatchedOrderAndCompound([orderHash])
     );
     almostEqual(
@@ -379,6 +455,11 @@ describe("P2P Pair Staking Test", () => {
       await p2pPairStaking.pendingCApeReward(user2.address),
       parseEther("2160")
     );
+
+    delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation.length).to.be.eq(0);
   });
 
   it("test MAYC pair with BAKC and ApeCoin Staking", async () => {
@@ -453,6 +534,27 @@ describe("P2P Pair Staking Test", () => {
     await waitForTx(
       await p2pPairStaking
         .connect(user1.signer)
+        .delegateForToken(mayc.address, [0], user1.address, true)
+    );
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user3.signer)
+        .delegateForToken(bakc.address, [0], user3.address, true)
+    );
+    const delegationRegistry = await getDelegationRegistry();
+    let delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation[0].to).to.be.eq(user1.address);
+    expect(delegation[0].tokenId).to.be.eq(0);
+    expect(delegation[0].contract_).to.be.eq(mayc.address);
+    expect(delegation[1].to).to.be.eq(user3.address);
+    expect(delegation[1].tokenId).to.be.eq(0);
+    expect(delegation[1].contract_).to.be.eq(bakc.address);
+
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user1.signer)
         .claimForMatchedOrderAndCompound([orderHash])
     );
     almostEqual(
@@ -508,6 +610,119 @@ describe("P2P Pair Staking Test", () => {
       await p2pPairStaking.pendingCApeReward(user2.address),
       parseEther("2160")
     );
+
+    delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation.length).to.be.eq(0);
+  });
+
+  it("test clear delegation after ntoken transfer", async () => {
+    const {
+      users: [user1, user2, user3],
+      ape,
+      bayc,
+      bakc,
+      nBAYC,
+      nBAKC,
+    } = await loadFixture(fixture);
+
+    await supplyAndValidate(bayc, "1", user1, true);
+    await supplyAndValidate(bakc, "1", user3, true);
+    await mintAndValidate(ape, "1000000", user2);
+
+    await waitForTx(
+      await bayc
+        .connect(user1.signer)
+        .setApprovalForAll(p2pPairStaking.address, true)
+    );
+    await waitForTx(
+      await bakc
+        .connect(user3.signer)
+        .setApprovalForAll(p2pPairStaking.address, true)
+    );
+
+    const apeAmount = await p2pPairStaking.getApeCoinStakingCap(2);
+    await waitForTx(
+      await cApe.connect(user2.signer).deposit(user2.address, apeAmount)
+    );
+
+    const user1SignedOrder = await getSignedListingOrder(
+      p2pPairStaking,
+      2,
+      bayc,
+      0,
+      2000,
+      user1
+    );
+    const user3SignedOrder = await getSignedListingOrder(
+      p2pPairStaking,
+      2,
+      bakc,
+      0,
+      2000,
+      user3
+    );
+    const user2SignedOrder = await getSignedListingOrder(
+      p2pPairStaking,
+      2,
+      cApe,
+      0,
+      6000,
+      user2
+    );
+
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user1.signer)
+        .matchBAKCPairStakingList(
+          user1SignedOrder,
+          user3SignedOrder,
+          user2SignedOrder
+        )
+    );
+
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user1.signer)
+        .delegateForToken(bayc.address, [0], user1.address, true)
+    );
+    await waitForTx(
+      await p2pPairStaking
+        .connect(user3.signer)
+        .delegateForToken(bakc.address, [0], user3.address, true)
+    );
+    const delegationRegistry = await getDelegationRegistry();
+    let delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation[0].to).to.be.eq(user1.address);
+    expect(delegation[0].tokenId).to.be.eq(0);
+    expect(delegation[0].contract_).to.be.eq(bayc.address);
+    expect(delegation[1].to).to.be.eq(user3.address);
+    expect(delegation[1].tokenId).to.be.eq(0);
+    expect(delegation[1].contract_).to.be.eq(bakc.address);
+
+    await waitForTx(
+      await nBAYC
+        .connect(user1.signer)
+        .transferFrom(user1.address, user2.address, 0)
+    );
+    delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation.length).to.be.eq(1);
+
+    await waitForTx(
+      await nBAKC
+        .connect(user3.signer)
+        .transferFrom(user3.address, user2.address, 0)
+    );
+
+    delegation = await delegationRegistry.getOutgoingDelegations(
+      p2pPairStaking.address
+    );
+    expect(delegation.length).to.be.eq(0);
   });
 
   it("claimForMatchedOrderAndCompound for multi user work as expected", async () => {

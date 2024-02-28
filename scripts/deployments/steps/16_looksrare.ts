@@ -20,10 +20,17 @@ import {
   waitForTx,
   isLocalTestnet,
   isPublicTestnet,
+  getParaSpaceConfig,
 } from "../../../helpers/misc-utils";
 import {GLOBAL_OVERRIDES} from "../../../helpers/hardhat-constants";
 
 export const step_16 = async (verify = false) => {
+  const paraSpaceConfig = getParaSpaceConfig();
+  if (!paraSpaceConfig.EnableLooksrare) {
+    console.log("looksrare not enable, skip deploy looksrare");
+    return;
+  }
+
   const allTokens = await getAllTokens();
   try {
     if ((!isLocalTestnet() && !isPublicTestnet()) || !allTokens.WETH) {

@@ -9,6 +9,7 @@ import {IReserveInterestRateStrategy} from "../../interfaces/IReserveInterestRat
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {IToken} from "../../interfaces/IToken.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
+import {MathUtils} from "../libraries/math/MathUtils.sol";
 
 /**
  * @title DefaultReserveInterestRateStrategy contract
@@ -103,12 +104,7 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
     }
 
     /// @inheritdoc IReserveInterestRateStrategy
-    function getMaxVariableBorrowRate()
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getMaxVariableBorrowRate() public view override returns (uint256) {
         return
             _baseVariableBorrowRate + _variableRateSlope1 + _variableRateSlope2;
     }
@@ -172,5 +168,10 @@ contract DefaultReserveInterestRateStrategy is IReserveInterestRateStrategy {
             );
 
         return (vars.currentLiquidityRate, vars.currentVariableBorrowRate);
+    }
+
+    function calculateMaxYearAPY() external view returns (uint256) {
+        uint256 maxRate = getMaxVariableBorrowRate();
+        return MathUtils.calculateCompoundedInterest(maxRate, 0, 31536000);
     }
 }

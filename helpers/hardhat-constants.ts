@@ -40,6 +40,8 @@ export const ZKSYNC_CHAINID = 324;
 export const ZKSYNC_GOERLI_CHAINID = 280;
 export const LINEA_GOERLI_CHAINID = 59140;
 export const LINEA_CHAINID = 59144;
+export const MANTA_CHAINID = 169;
+export const MANTA_TEST_CHAINID = 3441005;
 export const NEON_CHAINID = 245022934;
 
 export const INFURA_KEY = process.env.INFURA_KEY || "";

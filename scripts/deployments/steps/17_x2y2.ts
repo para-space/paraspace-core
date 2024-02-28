@@ -9,6 +9,7 @@ import {
 } from "../../../helpers/contracts-getters";
 import {X2Y2_ID} from "../../../helpers/constants";
 import {
+  getParaSpaceConfig,
   isLocalTestnet,
   isPublicTestnet,
   waitForTx,
@@ -17,6 +18,12 @@ import {GLOBAL_OVERRIDES} from "../../../helpers/hardhat-constants";
 
 export const step_17 = async (verify = false) => {
   try {
+    const paraSpaceConfig = getParaSpaceConfig();
+    if (!paraSpaceConfig.EnableX2Y2) {
+      console.log("x2y2 not enable, skip deploy x2y2");
+      return;
+    }
+
     if (!isLocalTestnet() && !isPublicTestnet()) {
       return;
     }

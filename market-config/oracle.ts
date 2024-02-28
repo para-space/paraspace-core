@@ -56,6 +56,15 @@ export const LineaOracleConfig: IOracleConfig = {
   Nodes: [],
 };
 
+export const MantaOracleConfig: IOracleConfig = {
+  BaseCurrency: ZERO_ADDRESS,
+  BaseCurrencyUnit: BigNumber.from("100000000"),
+  BaseCurrencyDecimals: 8,
+  ExpirationPeriod: 2400,
+  DeviationRate: 300,
+  Nodes: [],
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Testnet
 ////////////////////////////////////////////////////////////////////////////////

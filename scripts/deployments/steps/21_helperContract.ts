@@ -6,6 +6,7 @@ export const step_21 = async (verify = false) => {
   const paraSpaceConfig = getParaSpaceConfig();
   try {
     if (!paraSpaceConfig.ReservesConfig[ERC20TokenContractId.APE]) {
+      console.log("Not Ape Config, skip deploy HelperContract");
       return;
     }
 

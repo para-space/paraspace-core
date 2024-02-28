@@ -10,6 +10,7 @@ import {IRewardController} from "../../interfaces/IRewardController.sol";
 import {ApeStakingLogic} from "./libraries/ApeStakingLogic.sol";
 import "../../interfaces/INTokenApeStaking.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {IP2PPairStaking} from "../../interfaces/IP2PPairStaking.sol";
 
 /**
  * @title ApeCoinStaking NToken
@@ -118,6 +119,7 @@ abstract contract NTokenApeStaking is NToken, INTokenApeStaking {
                 bakcNToken: getBAKCNTokenAddress()
             })
         );
+        _clearP2PDelegationInfo(tokenId);
         super._transfer(from, to, tokenId, validate);
     }
 
@@ -167,6 +169,13 @@ abstract contract NTokenApeStaking is NToken, INTokenApeStaking {
         ApeStakingLogic.executeSetUnstakeApeIncentive(
             apeStakingDataStorage(),
             incentive
+        );
+    }
+
+    function setP2PPairStaking(address p2PStaking) external onlyPoolAdmin {
+        ApeStakingLogic.executeSetP2PPairStaking(
+            apeStakingDataStorage(),
+            p2PStaking
         );
     }
 
@@ -230,5 +239,15 @@ abstract contract NTokenApeStaking is NToken, INTokenApeStaking {
 
     function getBAKCNTokenAddress() internal view returns (address) {
         return POOL.getReserveData(address(getBAKC())).xTokenAddress;
+    }
+
+    function _clearP2PDelegationInfo(uint256 tokenId) internal {
+        address p2PStaking = apeStakingDataStorage().p2PStaking;
+        if (p2PStaking != address(0)) {
+            IP2PPairStaking(p2PStaking).clearDelegation(
+                _ERC721Data.underlyingAsset,
+                tokenId
+            );
+        }
     }
 }

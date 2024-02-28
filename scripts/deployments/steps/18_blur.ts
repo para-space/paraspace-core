@@ -13,6 +13,7 @@ import {
 } from "../../../helpers/contracts-getters";
 import {BLUR_ID, ZERO_ADDRESS} from "../../../helpers/constants";
 import {
+  getParaSpaceConfig,
   isLocalTestnet,
   isPublicTestnet,
   waitForTx,
@@ -20,6 +21,12 @@ import {
 import {GLOBAL_OVERRIDES} from "../../../helpers/hardhat-constants";
 
 export const step_18 = async (verify = false) => {
+  const paraSpaceConfig = getParaSpaceConfig();
+  if (!paraSpaceConfig.EnableBLUR) {
+    console.log("blur not enable, skip deploy blur");
+    return;
+  }
+
   const allERC20Tokens = await getAllERC20Tokens();
   try {
     if ((!isLocalTestnet() && !isPublicTestnet()) || !allERC20Tokens.WETH) {

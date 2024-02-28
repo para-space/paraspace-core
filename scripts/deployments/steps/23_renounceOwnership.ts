@@ -22,7 +22,7 @@ import {
   dryRunEncodedData,
 } from "../../../helpers/contracts-helpers";
 import {DRY_RUN, GLOBAL_OVERRIDES} from "../../../helpers/hardhat-constants";
-import {waitForTx} from "../../../helpers/misc-utils";
+import {getParaSpaceConfig, waitForTx} from "../../../helpers/misc-utils";
 import {eContractid} from "../../../helpers/types";
 
 export const step_23 = async (
@@ -42,14 +42,21 @@ export const step_23 = async (
     riskAdminAddress,
   } = admins || (await getParaSpaceAdmins());
 
+  const paraSpaceConfig = getParaSpaceConfig();
+
   try {
     const addressesProviderRegistry = await getPoolAddressesProviderRegistry();
     const addressesProvider = await getPoolAddressesProvider();
     const oldParaSpaceAdminAddress = await addressesProvider.owner();
     const reservesSetupHelper = await getReservesSetupHelper();
-    const conduitController = await getConduitController();
-    const conduit = await getConduit();
-    const zoneController = await getPausableZoneController();
+    let conduitController;
+    let conduit;
+    let zoneController;
+    if (paraSpaceConfig.EnableSeaport) {
+      conduitController = await getConduitController();
+      conduit = await getConduit();
+      zoneController = await getPausableZoneController();
+    }
     const aclManager = await getACLManager();
 
     console.log("new paraSpaceAdmin:", paraSpaceAdminAddress);
@@ -239,35 +246,37 @@ export const step_23 = async (
     ////////////////////////////////////////////////////////////////////////////////
     // Conduit & Zone Controller
     ////////////////////////////////////////////////////////////////////////////////
-    console.time("transferring conduit & zone Controller ownership...");
-    if (DRY_RUN) {
-      const encodedData1 = conduitController.interface.encodeFunctionData(
-        "transferOwnership",
-        [conduit.address, paraSpaceAdminAddress]
-      );
-      await dryRunEncodedData(conduitController.address, encodedData1);
-      const encodedData2 = zoneController.interface.encodeFunctionData(
-        "transferOwnership",
-        [paraSpaceAdminAddress]
-      );
-      await dryRunEncodedData(conduitController.address, encodedData2);
-    } else {
-      await waitForTx(
-        await conduitController.transferOwnership(
-          conduit.address,
-          paraSpaceAdminAddress,
-          GLOBAL_OVERRIDES
-        )
-      );
-      await waitForTx(
-        await zoneController.transferOwnership(
-          paraSpaceAdminAddress,
-          GLOBAL_OVERRIDES
-        )
-      );
+    if (paraSpaceConfig.EnableSeaport) {
+      console.time("transferring conduit & zone Controller ownership...");
+      if (DRY_RUN) {
+        const encodedData1 = conduitController.interface.encodeFunctionData(
+          "transferOwnership",
+          [conduit.address, paraSpaceAdminAddress]
+        );
+        await dryRunEncodedData(conduitController.address, encodedData1);
+        const encodedData2 = zoneController.interface.encodeFunctionData(
+          "transferOwnership",
+          [paraSpaceAdminAddress]
+        );
+        await dryRunEncodedData(conduitController.address, encodedData2);
+      } else {
+        await waitForTx(
+          await conduitController.transferOwnership(
+            conduit.address,
+            paraSpaceAdminAddress,
+            GLOBAL_OVERRIDES
+          )
+        );
+        await waitForTx(
+          await zoneController.transferOwnership(
+            paraSpaceAdminAddress,
+            GLOBAL_OVERRIDES
+          )
+        );
+      }
+      console.timeEnd("transferring conduit & zone Controller ownership...");
+      console.log();
     }
-    console.timeEnd("transferring conduit & zone Controller ownership...");
-    console.log();
 
     ////////////////////////////////////////////////////////////////////////////////
     // WETHGateway
@@ -486,16 +495,16 @@ export const step_23 = async (
       console.time("transferring nftFloorOracle ownership...");
       const nftFloorOracle = await getNFTFloorOracle();
       if (DRY_RUN) {
-        const encodedData1 = nftFloorOracle.interface.encodeFunctionData(
-          "grantRole",
-          [await nftFloorOracle.UPDATER_ROLE(), paraSpaceAdminAddress]
-        );
-        await dryRunEncodedData(nftFloorOracle.address, encodedData1);
-        const encodedData2 = nftFloorOracle.interface.encodeFunctionData(
-          "revokeRole",
-          [await nftFloorOracle.UPDATER_ROLE(), oldParaSpaceAdminAddress]
-        );
-        await dryRunEncodedData(nftFloorOracle.address, encodedData2);
+        // const encodedData1 = nftFloorOracle.interface.encodeFunctionData(
+        //   "grantRole",
+        //   [await nftFloorOracle.UPDATER_ROLE(), paraSpaceAdminAddress]
+        // );
+        // await dryRunEncodedData(nftFloorOracle.address, encodedData1);
+        // const encodedData2 = nftFloorOracle.interface.encodeFunctionData(
+        //   "revokeRole",
+        //   [await nftFloorOracle.UPDATER_ROLE(), oldParaSpaceAdminAddress]
+        // );
+        // await dryRunEncodedData(nftFloorOracle.address, encodedData2);
         const encodedData3 = nftFloorOracle.interface.encodeFunctionData(
           "grantRole",
           [await nftFloorOracle.DEFAULT_ADMIN_ROLE(), paraSpaceAdminAddress]
@@ -507,20 +516,20 @@ export const step_23 = async (
         );
         await dryRunEncodedData(nftFloorOracle.address, encodedData4);
       } else {
-        await waitForTx(
-          await nftFloorOracle.grantRole(
-            await nftFloorOracle.UPDATER_ROLE(),
-            paraSpaceAdminAddress,
-            GLOBAL_OVERRIDES
-          )
-        );
-        await waitForTx(
-          await nftFloorOracle.revokeRole(
-            await nftFloorOracle.UPDATER_ROLE(),
-            oldParaSpaceAdminAddress,
-            GLOBAL_OVERRIDES
-          )
-        );
+        // await waitForTx(
+        //   await nftFloorOracle.grantRole(
+        //     await nftFloorOracle.UPDATER_ROLE(),
+        //     paraSpaceAdminAddress,
+        //     GLOBAL_OVERRIDES
+        //   )
+        // );
+        // await waitForTx(
+        //   await nftFloorOracle.revokeRole(
+        //     await nftFloorOracle.UPDATER_ROLE(),
+        //     oldParaSpaceAdminAddress,
+        //     GLOBAL_OVERRIDES
+        //   )
+        // );
         await waitForTx(
           await nftFloorOracle.grantRole(
             await nftFloorOracle.DEFAULT_ADMIN_ROLE(),

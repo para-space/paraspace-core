@@ -140,6 +140,33 @@ task("set-reserve-factor", "Set reserve factor")
     }
   });
 
+task("reset-all-asset-reserve-factor", "Reset all asset reserve factor")
+  .addPositionalParam("reserveFactor", "reserve factor")
+  .setAction(async ({reserveFactor}, DRE) => {
+    await DRE.run("set-DRE");
+    const {dryRunEncodedData} = await import("../../helpers/contracts-helpers");
+    const {getPoolProxy, getPoolConfiguratorProxy} = await import(
+      "../../helpers/contracts-getters"
+    );
+    const configurator = await getPoolConfiguratorProxy();
+    const poolProxy = await getPoolProxy();
+    const assets = await poolProxy.getReservesList();
+
+    for (const asset of assets) {
+      const encodedData = configurator.interface.encodeFunctionData(
+        "setReserveFactor",
+        [asset, reserveFactor]
+      );
+      if (DRY_RUN) {
+        await dryRunEncodedData(configurator.address, encodedData);
+      } else {
+        await waitForTx(
+          await configurator.setReserveFactor(asset, reserveFactor)
+        );
+      }
+    }
+  });
+
 task("set-interest-rate-strategy", "Set interest rate strategy")
   .addPositionalParam("assets", "assets")
   .addPositionalParam(
